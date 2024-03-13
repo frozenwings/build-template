@@ -1,0 +1,69 @@
+template:
+  name: build-and-push-docker
+  type: Pipeline
+  projectIdentifier: default_project
+  orgIdentifier: default
+  spec:
+    properties:
+      ci:
+        codebase:
+          connectorRef: githubfrozenwings
+          repoName: harness-gitops-workshop
+          build: <+input>
+    stages:
+      - stage:
+          name: ci-stage
+          identifier: cistage
+          description: ""
+          type: CI
+          spec:
+            cloneCodebase: true
+            platform:
+              os: MacOS
+              arch: Arm64
+            runtime:
+              type: Docker
+              spec: {}
+            execution:
+              steps:
+                - step:
+                    type: Run
+                    name: Run OWASP Tests
+                    identifier: Run_OWASP_Tests
+                    spec:
+                      shell: Sh
+                      command: |-
+                        echo "Running OWASP tests..."
+                        sleep 2
+                        echo "OWASP tests passed!"
+                - step:
+                    type: BuildAndPushDockerRegistry
+                    name: BuildAndPushDockerRegistry_1
+                    identifier: BuildAndPushDockerRegistry_1
+                    spec:
+                      connectorRef: dockerhub
+                      repo: frozenwings/harness-gitops-workshop
+                      tags:
+                        - <+pipeline.variables.imageTag>
+                      dockerfile: apps/podinfo/Dockerfile
+                      context: apps/podinfo
+                - step:
+                    type: Run
+                    name: Echo
+                    identifier: Echo
+                    spec:
+                      shell: Sh
+                      command: echo "Build and push ${imageTag} success"
+                      envVariables:
+                        imageTag: <+pipeline.variables.imageTag>
+          delegateSelectors:
+            - lxy-delegate
+    variables:
+      - name: imageTag
+        type: String
+        description: ""
+        required: false
+        value: <+input>
+  identifier: test
+  versionLabel: "1.0"
+  tags: {}
