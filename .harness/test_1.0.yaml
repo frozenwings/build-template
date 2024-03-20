@@ -58,6 +58,73 @@ template:
                         imageTag: <+pipeline.variables.imageTag>
           delegateSelectors:
             - lxy-delegate
+      - parallel:
+          - stage:
+              name: tt
+              identifier: tt
+              description: ""
+              type: CI
+              spec:
+                cloneCodebase: true
+                platform:
+                  os: Linux
+                  arch: Amd64
+                runtime:
+                  type: Docker
+                  spec: {}
+                execution:
+                  steps:
+                    - step:
+                        type: Run
+                        name: Run_1
+                        identifier: Run_1
+                        spec: {}
+          - stage:
+              name: ff
+              identifier: ff
+              description: ""
+              type: CI
+              spec:
+                cloneCodebase: true
+                execution:
+                  steps:
+                    - parallel:
+                        - step:
+                            type: Run
+                            name: Run_1
+                            identifier: Run_1
+                            spec:
+                              connectorRef: dockerhub
+                              image: <+input>
+                              shell: Bash
+                              privileged: false
+                        - step:
+                            type: BuildAndPushGCR
+                            name: BuildAndPushGCR_1
+                            identifier: BuildAndPushGCR_1
+                            spec: {}
+                        - step:
+                            type: BuildAndPushGAR
+                            name: BuildAndPushGAR_1
+                            identifier: BuildAndPushGAR_1
+                            spec: {}
+                    - parallel:
+                        - step:
+                            type: Background
+                            name: Background_1
+                            identifier: Background_1
+                            spec: {}
+                        - step:
+                            type: Run
+                            name: Run_2
+                            identifier: Run_2
+                            spec: {}
+                platform:
+                  os: Linux
+                  arch: Arm64
+                runtime:
+                  type: Docker
+                  spec: {}
     variables:
       - name: imageTag
         type: String
